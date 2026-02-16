@@ -985,6 +985,7 @@ dependencies = [
 [[package]]
 name = "yew"
 version = "0.21.0"
+source = "git+https://github.com/WorldSEnder/yew.git?rev=3cf0e6e#3cf0e6e2758a090abab0065f05015bdaa55132f4"
 dependencies = [
  "async-once-cell",
  "console_error_panic_hook",
@@ -1010,6 +1011,7 @@ dependencies = [
 [[package]]
 name = "yew-macro"
 version = "0.21.0"
+source = "git+https://github.com/WorldSEnder/yew.git?rev=3cf0e6e#3cf0e6e2758a090abab0065f05015bdaa55132f4"
 dependencies = [
  "once_cell",
  "prettyplease",

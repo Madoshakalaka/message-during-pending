@@ -1,11 +1,12 @@
-use std::future::Future;
+use std::future::{pending, Future};
 
 use yew::lazy::declare_lazy_component;
 use yew::prelude::*;
 use yew::suspense::Suspension;
 
 // ---------------------------------------------------------------------------
-// A simple counter component — this is the one we'll load "lazily".
+// A counter component — the one we'll load lazily.
+// Uses use_state, which triggers re-renders via the scope it was created with.
 // ---------------------------------------------------------------------------
 
 #[derive(Clone, Debug, PartialEq, Properties)]
@@ -31,23 +32,25 @@ fn Counter(props: &CounterProps) -> Html {
 }
 
 // ---------------------------------------------------------------------------
-// Use the real declare_lazy_component!() macro, exactly as a user would.
+// declare_lazy_component!() — the real macro from the PR, same pattern as
+// examples/split-wasm/src/yew.rs line 24.
 // ---------------------------------------------------------------------------
 
 declare_lazy_component!(Counter as LazyCounter in lazy_counter);
 
 // ---------------------------------------------------------------------------
-// A permanently-pending component so Suspense shows its fallback when the
-// lazy component is toggled off (mirrors the original split-wasm example).
+// A permanently-pending component so Suspense keeps showing its fallback
+// when the lazy component hasn't been toggled on yet.
+// (Same pattern as examples/split-wasm/src/yew.rs line 26-29.)
 // ---------------------------------------------------------------------------
 
 #[component]
 fn Pending() -> HtmlResult {
-    Err(Suspension::from_future(std::future::pending()).into())
+    Err(Suspension::from_future(pending()).into())
 }
 
 // ---------------------------------------------------------------------------
-// App: shows a normal counter and a lazy counter side-by-side.
+// App — normal counter next to a lazy counter to contrast behaviour.
 // ---------------------------------------------------------------------------
 
 #[component]
@@ -60,13 +63,15 @@ pub fn App() -> Html {
 
     html! {
         <main>
-            <h1>{ "Lazy Component Message Bug Demo" }</h1>
+            <h1>{ "Lazy Component Bug Demo" }</h1>
 
             <section class="side-by-side">
-                // --- Normal counter (works fine) ---
+                // Normal counter — works perfectly.
                 <Counter label="Normal counter" />
 
-                // --- Lazily-loaded counter (broken state updates) ---
+                // Lazy counter — initial render looks fine, but +1 button
+                // silently does nothing because use_state's re-render signal
+                // targets the unmounted inner_scope.
                 <div class="counter">
                     <h3>{ "Lazy counter" }</h3>
                     <label>
@@ -86,11 +91,10 @@ pub fn App() -> Html {
             </section>
 
             <p class="explanation">
-                { "The normal counter increments when you click +1. " }
-                { "The lazy counter renders correctly but " }
-                <strong>{ "clicking +1 does nothing" }</strong>
-                { " — use_state re-render signals are silently lost because " }
-                { "the inner scope was never mounted." }
+                { "Click +1 on both counters. The normal counter increments. " }
+                { "The lazy counter " }
+                <strong>{ "stays stuck at 0" }</strong>
+                { " — use_state re-render signals are silently lost." }
             </p>
         </main>
     }
